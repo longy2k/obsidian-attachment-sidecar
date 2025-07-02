@@ -1,69 +1,69 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
+import { App, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
 
 // Remember to rename these classes and interfaces!
 
-interface MyPluginSettings {
-	mySetting: string;
+interface SideCarSettings {
+	toggleSideCarFiles: boolean;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
+const DEFAULT_SETTINGS: SideCarSettings = {
+	toggleSideCarFiles: false,
 }
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class SideCarPlugin extends Plugin {
+	settings: SideCarSettings;
 
 	async onload() {
 		await this.loadSettings();
 
 		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
+		// const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
+		// 	// Called when the user clicks the icon.
+		// 	new Notice('This is a notice!');
+		// });
 		// Perform additional things with the ribbon
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
+		// ribbonIconEl.addClass('my-plugin-ribbon-class');
 
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
+		// const statusBarItemEl = this.addStatusBarItem();
+		// statusBarItemEl.setText('Status Bar Text');
 
 		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: 'open-sample-modal-simple',
-			name: 'Open sample modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
-			}
-		});
+		// this.addCommand({
+		// 	id: 'open-sample-modal-simple',
+		// 	name: 'Open sample modal (simple)',
+		// 	callback: () => {
+		// 		new SampleModal(this.app).open();
+		// 	}
+		// });
 		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'sample-editor-command',
-			name: 'Sample editor command',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
-				editor.replaceSelection('Sample Editor Command');
-			}
-		});
+		// this.addCommand({
+		// 	id: 'sample-editor-command',
+		// 	name: 'Sample editor command',
+		// 	editorCallback: (editor: Editor, view: MarkdownView) => {
+		// 		console.log(editor.getSelection());
+		// 		editor.replaceSelection('Sample Editor Command');
+		// 	}
+		// });
 		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-sample-modal-complex',
-			name: 'Open sample modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
+		// this.addCommand({
+		// 	id: 'open-sample-modal-complex',
+		// 	name: 'Open sample modal (complex)',
+		// 	checkCallback: (checking: boolean) => {
+		// 		// Conditions to check
+		// 		const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		// 		if (markdownView) {
+		// 			// If checking is true, we're simply "checking" if the command can be run.
+		// 			// If checking is false, then we want to actually perform the operation.
+		// 			if (!checking) {
+		// 				new SampleModal(this.app).open();
+		// 			}
 
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
-			}
-		});
+		// 			// This command will only show up in Command Palette when the check function returns true
+		// 			return true;
+		// 		}
+		// 	}
+		// });
 
 		this.registerEvent(
 			this.app.vault.on('create', async (file) => {
@@ -178,48 +178,32 @@ export default class MyPlugin extends Plugin {
 		})
 		);
 
-this.registerEvent(
-  this.app.vault.on('delete', async (file) => {
-    if (!(file instanceof TFile)) return;
-    
-    if (file.extension !== 'md') {
-      // Binary file deleted -> delete sidecar
-      const sidecarPath = `${file.path}.md`;
-      const sidecarFile = this.app.vault.getAbstractFileByPath(sidecarPath);
-      
-      if (sidecarFile instanceof TFile) {
-        try {
-          // Check if file still exists before attempting to delete
-          const exists = await this.app.vault.adapter.exists(sidecarPath);
-          if (exists) {
-            await this.app.vault.trash(sidecarFile, false);
-          }
-        } catch (error) {
-          console.log(`Could not delete sidecar: ${error.message}`);
-        }
-      }
-    } else if (file.path.endsWith('.md')) {
-      // MD file deleted -> check if binary file exists and delete it
-      const binaryPath = file.path.slice(0, -3); // Remove .md
-      const binaryFile = this.app.vault.getAbstractFileByPath(binaryPath);
-      
-      if (binaryFile instanceof TFile && binaryFile.extension !== 'md') {
-        try {
-          // Check if file still exists before attempting to delete
-          const exists = await this.app.vault.adapter.exists(binaryPath);
-          if (exists) {
-            await this.app.vault.trash(binaryFile, false);
-          }
-        } catch (error) {
-          console.log(`Could not delete binary file: ${error.message}`);
-        }
-      }
-    }
-  })
-);
+		this.registerEvent(
+		this.app.vault.on('delete', async (file) => {
+			if (!(file instanceof TFile)) return;
+			
+			if (file.extension !== 'md') {
+			// Binary file deleted -> delete sidecar
+			const sidecarPath = `${file.path}.md`;
+			const sidecarFile = this.app.vault.getAbstractFileByPath(sidecarPath);
+			
+			if (sidecarFile instanceof TFile) {
+				try {
+				// Check if file still exists before attempting to delete
+				const exists = await this.app.vault.adapter.exists(sidecarPath);
+				if (exists) {
+					await this.app.vault.trash(sidecarFile, false);
+				}
+				} catch (error) {
+				console.log(`Could not delete sidecar: ${error.message}`);
+				}
+			}
+			}
+		})
+		);
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new SideCarSettingTab(this.app, this));
 
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
@@ -227,8 +211,6 @@ this.registerEvent(
 			// console.log('click', evt);
 		});
 
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 	}
 
 	onunload() {
@@ -244,26 +226,26 @@ this.registerEvent(
 	}
 }
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
+// class SampleModal extends Modal {
+// 	constructor(app: App) {
+// 		super(app);
+// 	}
 
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
+// 	onOpen() {
+// 		const {contentEl} = this;
+// 		contentEl.setText('Woah!');
+// 	}
 
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
-	}
-}
+// 	onClose() {
+// 		const {contentEl} = this;
+// 		contentEl.empty();
+// 	}
+// }
 
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+class SideCarSettingTab extends PluginSettingTab {
+	plugin: SideCarPlugin;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: SideCarPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -273,39 +255,27 @@ class SampleSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		new Setting(containerEl)
-			.setName('Default location for new attachment metadata')
-			.setDesc('Where newly added attachment metadata files are placed.')
-			.addDropdown(dropdown => dropdown
-				.addOption('option1', 'Vault Folder')
-				.addOption('option2', 'In the folder specified below')
-				.addOption('option3', 'Same folder as current file')
-				.addOption('option4', 'In subfolder under current folder')
-				.setValue(this.plugin.settings.mySetting || 'option1')
-				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
+		containerEl.createEl('p', {text: 'Backup your vault before activating just in case you want to revert changes.'});
 
-					// Handle each option
-					switch(value) {
-						case 'option1':
-							await this.handleVaultFolder();
-							break;
-						case 'option2':
-							this.handleSpecifiedFolder();
-							break;
-						case 'option3':
-							this.handleCurrentFileFolder();
-							break;
-						case 'option4':
-							this.handleSubfolder();
-							break;
+		new Setting(containerEl)
+			.setName('Generate and Run Sidecar Files')
+			.setDesc('Toggle to create sidecar markdown files for all binary attachments in vault.')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.toggleSideCarFiles)
+				.onChange(async (value) => {
+					this.plugin.settings.toggleSideCarFiles = value;
+					await this.plugin.saveSettings();
+					
+					if (value) {
+						await this.createSideCarFiles();
 					}
+					// Handle toggle state change
+					// You might want to show/hide other settings based on this toggle
 				}));
 	}
 
-	// Updated handleVaultFolder method for creating sidecar markdown files
-	async handleVaultFolder() {
+	// Updated createSideCarFiles method for creating sidecar markdown files
+	async createSideCarFiles() {
 		console.log('Vault Folder selected');
 		new Notice('Creating sidecar files for attachments in vault folder...');
 		
@@ -354,7 +324,7 @@ class SampleSettingTab extends PluginSettingTab {
 			new Notice(`Sidecar creation complete: ${createdCount} created, ${skippedCount} skipped`);
 			
 		} catch (error) {
-			console.error('Error in handleVaultFolder:', error);
+			console.error('Error in createSideCarFiles:', error);
 			new Notice('Error creating sidecar files. Check console for details.');
 		}
 	}
@@ -364,24 +334,5 @@ class SampleSettingTab extends PluginSettingTab {
 		const filename = binaryFile.name;
 		
 		return `---\nfile: "[[${filename}]]"\n---\n![[${filename}]]`;
-	}
-
-	handleSpecifiedFolder() {
-		console.log('In the folder specified below selected');
-		new Notice('Setting attachment location to: Specified folder');
-		// Add your specific logic for specified folder here
-		// You might want to show an additional input field for folder path
-	}
-
-	handleCurrentFileFolder() {
-		console.log('Same folder as current file selected');
-		new Notice('Setting attachment location to: Same folder as current file');
-		// Add your specific logic for current file folder here
-	}
-
-	handleSubfolder() {
-		console.log('In subfolder under current folder selected');
-		new Notice('Setting attachment location to: Subfolder under current folder');
-		// Add your specific logic for subfolder here
 	}
 }
