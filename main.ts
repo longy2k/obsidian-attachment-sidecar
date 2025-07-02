@@ -65,148 +65,158 @@ export default class MyPlugin extends Plugin {
 			}
 		});
 
-this.registerEvent(
-	this.app.vault.on('create', async (file) => {
-		// Only handle TFile instances that are not markdown files
-		if (file instanceof TFile && file.extension !== 'md') {
-			const sidecarPath = `${file.path}.md`;
-			
-			// Check if sidecar already exists
-			const existingSidecar = this.app.vault.getAbstractFileByPath(sidecarPath);
-			if (existingSidecar) {
-				return; // Skip if sidecar already exists
-			}
-			
-			try {
-				// Generate sidecar content
-				const sidecarContent = `---\nfile: "[[${file.name}]]"\n---\n![[${file.name}]]`;
-				
-				// Create the sidecar file
-				await this.app.vault.create(sidecarPath, sidecarContent);
-				console.log(`Created sidecar for: ${file.path}`);
-			} catch (error) {
-				console.log(`Failed to create sidecar for ${file.path}: ${error.message}`);
-			}
-		}
-	})
-);
+		this.registerEvent(
+			this.app.vault.on('create', async (file) => {
+				// Only handle TFile instances that are not markdown files
+				if (file instanceof TFile && file.extension !== 'md') {
+					const sidecarPath = `${file.path}.md`;
+					
+					// Check if sidecar already exists
+					const existingSidecar = this.app.vault.getAbstractFileByPath(sidecarPath);
+					if (existingSidecar) {
+						return; // Skip if sidecar already exists
+					}
+					
+					try {
+						// Generate sidecar content
+						const sidecarContent = `---\nfile: "[[${file.name}]]"\n---\n![[${file.name}]]`;
+						
+						// Create the sidecar file
+						await this.app.vault.create(sidecarPath, sidecarContent);
+						console.log(`Created sidecar for: ${file.path}`);
+					} catch (error) {
+						console.log(`Failed to create sidecar for ${file.path}: ${error.message}`);
+					}
+				}
+			})
+		);
 
 		this.registerEvent(
-  this.app.vault.on('rename', async (file, oldPath) => {
-    // Case 1: Handle non-markdown files being renamed (your existing logic)
-    if (file instanceof TFile && file.extension !== 'md') {
-      const oldSidecarPath = `${oldPath}.md`;
-      const newSidecarPath = `${file.path}.md`;
-      const sidecarFile = this.app.vault.getAbstractFileByPath(oldSidecarPath);
+		this.app.vault.on('rename', async (file, oldPath) => {
+			// Case 1: Handle non-markdown files being renamed (your existing logic)
+			if (file instanceof TFile && file.extension !== 'md') {
+			const oldSidecarPath = `${oldPath}.md`;
+			const newSidecarPath = `${file.path}.md`;
+			const sidecarFile = this.app.vault.getAbstractFileByPath(oldSidecarPath);
+			
+			if (sidecarFile instanceof TFile) {
+				try {
+				// Check if the sidecar file actually exists and is readable
+				const fileExists = await this.app.vault.adapter.exists(oldSidecarPath);
+				if (!fileExists) {
+					console.log(`Sidecar file ${oldSidecarPath} doesn't exist, skipping rename`);
+					return;
+				}
+				
+				// Read the current sidecar content
+				const sidecarContent = await this.app.vault.read(sidecarFile);
+				
+				// Extract old and new filenames
+				const oldFilename = oldPath.split('/').pop(); // Get just the filename
+				const newFilename = file.name;
+				
+				// Update the content to reference the new filename
+				const updatedContent = sidecarContent
+					.replace(new RegExp(`\\[\\[${oldFilename}\\]\\]`, 'g'), `[[${newFilename}]]`)
+					.replace(new RegExp(`!\\[\\[${oldFilename}\\]\\]`, 'g'), `![[${newFilename}]]`);
+				
+				// Rename the sidecar file
+				await this.app.vault.rename(sidecarFile, newSidecarPath);
+				
+				// Update the content with new filename references
+				const renamedSidecarFile = this.app.vault.getAbstractFileByPath(newSidecarPath);
+				if (renamedSidecarFile instanceof TFile) {
+					await this.app.vault.modify(renamedSidecarFile, updatedContent);
+				}
+				} catch (error) {
+				// Silently handle file system errors - they're usually harmless race conditions
+				console.log(`Sidecar rename skipped for ${oldPath}: ${error.message}`);
+				}
+			}
+			}
+			
+			// Case 2: Handle markdown sidecar files being renamed (NEW LOGIC)
+			else if (file instanceof TFile && file.extension === 'md' && oldPath.endsWith('.md')) {
+			// Check if this is a sidecar file by seeing if there's a corresponding main file
+			const oldMainFilePath = oldPath.slice(0, -3); // Remove '.md' extension
+			const newMainFilePath = file.path.slice(0, -3); // Remove '.md' extension
+			const mainFile = this.app.vault.getAbstractFileByPath(oldMainFilePath);
+			
+			if (mainFile instanceof TFile && mainFile.extension !== 'md') {
+				try {
+				// Check if the main file actually exists
+				const fileExists = await this.app.vault.adapter.exists(oldMainFilePath);
+				if (!fileExists) {
+					console.log(`Main file ${oldMainFilePath} doesn't exist, skipping rename`);
+					return;
+				}
+				
+				// Read the current sidecar content to update internal references
+				const sidecarContent = await this.app.vault.read(file);
+				
+				// Extract old and new filenames
+				const oldFilename = oldMainFilePath.split('/').pop();
+				const newFilename = newMainFilePath.split('/').pop();
+				
+				// Update the sidecar content to reference the new main filename
+				const updatedContent = sidecarContent
+					.replace(new RegExp(`\\[\\[${oldFilename}\\]\\]`, 'g'), `[[${newFilename}]]`)
+					.replace(new RegExp(`!\\[\\[${oldFilename}\\]\\]`, 'g'), `![[${newFilename}]]`);
+				
+				// Rename the main file to match the sidecar
+				await this.app.vault.rename(mainFile, newMainFilePath);
+				
+				// Update the sidecar content with new filename references
+				await this.app.vault.modify(file, updatedContent);
+				
+				} catch (error) {
+				// Silently handle file system errors - they're usually harmless race conditions
+				console.log(`Main file rename skipped for ${oldPath}: ${error.message}`);
+				}
+			}
+			}
+		})
+		);
+
+this.registerEvent(
+  this.app.vault.on('delete', async (file) => {
+    if (!(file instanceof TFile)) return;
+    
+    if (file.extension !== 'md') {
+      // Binary file deleted -> delete sidecar
+      const sidecarPath = `${file.path}.md`;
+      const sidecarFile = this.app.vault.getAbstractFileByPath(sidecarPath);
       
       if (sidecarFile instanceof TFile) {
         try {
-          // Check if the sidecar file actually exists and is readable
-          const fileExists = await this.app.vault.adapter.exists(oldSidecarPath);
-          if (!fileExists) {
-            console.log(`Sidecar file ${oldSidecarPath} doesn't exist, skipping rename`);
-            return;
-          }
-          
-          // Read the current sidecar content
-          const sidecarContent = await this.app.vault.read(sidecarFile);
-          
-          // Extract old and new filenames
-          const oldFilename = oldPath.split('/').pop(); // Get just the filename
-          const newFilename = file.name;
-          
-          // Update the content to reference the new filename
-          const updatedContent = sidecarContent
-            .replace(new RegExp(`\\[\\[${oldFilename}\\]\\]`, 'g'), `[[${newFilename}]]`)
-            .replace(new RegExp(`!\\[\\[${oldFilename}\\]\\]`, 'g'), `![[${newFilename}]]`);
-          
-          // Rename the sidecar file
-          await this.app.vault.rename(sidecarFile, newSidecarPath);
-          
-          // Update the content with new filename references
-          const renamedSidecarFile = this.app.vault.getAbstractFileByPath(newSidecarPath);
-          if (renamedSidecarFile instanceof TFile) {
-            await this.app.vault.modify(renamedSidecarFile, updatedContent);
+          // Check if file still exists before attempting to delete
+          const exists = await this.app.vault.adapter.exists(sidecarPath);
+          if (exists) {
+            await this.app.vault.trash(sidecarFile, false);
           }
         } catch (error) {
-          // Silently handle file system errors - they're usually harmless race conditions
-          console.log(`Sidecar rename skipped for ${oldPath}: ${error.message}`);
+          console.log(`Could not delete sidecar: ${error.message}`);
         }
       }
-    }
-    
-    // Case 2: Handle markdown sidecar files being renamed (NEW LOGIC)
-    else if (file instanceof TFile && file.extension === 'md' && oldPath.endsWith('.md')) {
-      // Check if this is a sidecar file by seeing if there's a corresponding main file
-      const oldMainFilePath = oldPath.slice(0, -3); // Remove '.md' extension
-      const newMainFilePath = file.path.slice(0, -3); // Remove '.md' extension
-      const mainFile = this.app.vault.getAbstractFileByPath(oldMainFilePath);
+    } else if (file.path.endsWith('.md')) {
+      // MD file deleted -> check if binary file exists and delete it
+      const binaryPath = file.path.slice(0, -3); // Remove .md
+      const binaryFile = this.app.vault.getAbstractFileByPath(binaryPath);
       
-      if (mainFile instanceof TFile && mainFile.extension !== 'md') {
+      if (binaryFile instanceof TFile && binaryFile.extension !== 'md') {
         try {
-          // Check if the main file actually exists
-          const fileExists = await this.app.vault.adapter.exists(oldMainFilePath);
-          if (!fileExists) {
-            console.log(`Main file ${oldMainFilePath} doesn't exist, skipping rename`);
-            return;
+          // Check if file still exists before attempting to delete
+          const exists = await this.app.vault.adapter.exists(binaryPath);
+          if (exists) {
+            await this.app.vault.trash(binaryFile, false);
           }
-          
-          // Read the current sidecar content to update internal references
-          const sidecarContent = await this.app.vault.read(file);
-          
-          // Extract old and new filenames
-          const oldFilename = oldMainFilePath.split('/').pop();
-          const newFilename = newMainFilePath.split('/').pop();
-          
-          // Update the sidecar content to reference the new main filename
-          const updatedContent = sidecarContent
-            .replace(new RegExp(`\\[\\[${oldFilename}\\]\\]`, 'g'), `[[${newFilename}]]`)
-            .replace(new RegExp(`!\\[\\[${oldFilename}\\]\\]`, 'g'), `![[${newFilename}]]`);
-          
-          // Rename the main file to match the sidecar
-          await this.app.vault.rename(mainFile, newMainFilePath);
-          
-          // Update the sidecar content with new filename references
-          await this.app.vault.modify(file, updatedContent);
-          
         } catch (error) {
-          // Silently handle file system errors - they're usually harmless race conditions
-          console.log(`Main file rename skipped for ${oldPath}: ${error.message}`);
+          console.log(`Could not delete binary file: ${error.message}`);
         }
       }
     }
   })
 );
-
-		this.registerEvent(
-			this.app.vault.on('delete', async (file) => {
-				if (!(file instanceof TFile)) return;
-				
-				if (file.extension !== 'md') {
-					// Binary file deleted -> delete sidecar
-					const sidecarPath = `${file.path}.md`;
-					const sidecarFile = this.app.vault.getAbstractFileByPath(sidecarPath);
-					if (sidecarFile instanceof TFile) {
-						try {
-							await this.app.vault.delete(sidecarFile);
-						} catch (error) {
-							console.log(`Could not delete sidecar: ${error.message}`);
-						}
-					}
-				} else if (file.path.endsWith('.md')) {
-					// MD file deleted -> check if binary file exists and delete it
-					const binaryPath = file.path.slice(0, -3); // Remove .md
-					const binaryFile = this.app.vault.getAbstractFileByPath(binaryPath);
-					if (binaryFile instanceof TFile && binaryFile.extension !== 'md') {
-						try {
-							await this.app.vault.delete(binaryFile);
-						} catch (error) {
-							console.log(`Could not delete binary file: ${error.message}`);
-						}
-					}
-				}
-			})
-		);
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new SampleSettingTab(this.app, this));
