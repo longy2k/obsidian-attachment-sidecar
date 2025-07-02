@@ -69,7 +69,7 @@ export default class SideCarPlugin extends Plugin {
 			this.app.vault.on('create', async (file) => {
 				// Only handle TFile instances that are not markdown files
 				if (file instanceof TFile && file.extension !== 'md') {
-					const sidecarPath = `${file.path}.md`;
+					const sidecarPath = `${file.path}.md.md`;
 					
 					// Check if sidecar already exists
 					const existingSidecar = this.app.vault.getAbstractFileByPath(sidecarPath);
@@ -95,8 +95,8 @@ export default class SideCarPlugin extends Plugin {
 		this.app.vault.on('rename', async (file, oldPath) => {
 			// Case 1: Handle non-markdown files being renamed (your existing logic)
 			if (file instanceof TFile && file.extension !== 'md') {
-			const oldSidecarPath = `${oldPath}.md`;
-			const newSidecarPath = `${file.path}.md`;
+			const oldSidecarPath = `${oldPath}.md.md`;
+			const newSidecarPath = `${file.path}.md.md`;
 			const sidecarFile = this.app.vault.getAbstractFileByPath(oldSidecarPath);
 			
 			if (sidecarFile instanceof TFile) {
@@ -136,10 +136,10 @@ export default class SideCarPlugin extends Plugin {
 			}
 			
 			// Case 2: Handle markdown sidecar files being renamed (NEW LOGIC)
-			else if (file instanceof TFile && file.extension === 'md' && oldPath.endsWith('.md')) {
+			else if (file instanceof TFile && file.extension === 'md' && oldPath.endsWith('.md.md')) {
 			// Check if this is a sidecar file by seeing if there's a corresponding main file
-			const oldMainFilePath = oldPath.slice(0, -3); // Remove '.md' extension
-			const newMainFilePath = file.path.slice(0, -3); // Remove '.md' extension
+			const oldMainFilePath = oldPath.slice(0, -6); // Remove '.md' extension
+			const newMainFilePath = file.path.slice(0, -6); // Remove '.md' extension
 			const mainFile = this.app.vault.getAbstractFileByPath(oldMainFilePath);
 			
 			if (mainFile instanceof TFile && mainFile.extension !== 'md') {
@@ -184,7 +184,7 @@ export default class SideCarPlugin extends Plugin {
 			
 			if (file.extension !== 'md') {
 			// Binary file deleted -> delete sidecar
-			const sidecarPath = `${file.path}.md`;
+			const sidecarPath = `${file.path}.md.md`;
 			const sidecarFile = this.app.vault.getAbstractFileByPath(sidecarPath);
 			
 			if (sidecarFile instanceof TFile) {
@@ -285,7 +285,7 @@ class SideCarSettingTab extends PluginSettingTab {
 			
 			// Filter to get only binary/non-markdown files
 			const binaryFiles = allFiles.filter(file => {
-				return file.extension !== 'md' && !file.path.endsWith('.md');
+				return file.extension !== 'md' && !file.path.endsWith('.md') && !file.path.endsWith('.md.md');
 			});
 			
 			console.log(`Found ${binaryFiles.length} binary files`);
@@ -295,7 +295,7 @@ class SideCarSettingTab extends PluginSettingTab {
 			
 			for (const binaryFile of binaryFiles) {
 				// Create the sidecar file path by adding .md extension
-				const sidecarPath = `${binaryFile.path}.md`;
+				const sidecarPath = `${binaryFile.path}.md.md`;
 				
 				// Check if sidecar file already exists
 				const existingSidecar = this.plugin.app.vault.getAbstractFileByPath(sidecarPath);
