@@ -255,6 +255,8 @@ class SideCarSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
+		containerEl.createEl('h3', {text: 'Attachment Sidecar Settings'});
+
 		containerEl.createEl('p', {text: 'Backup your vault before activating just in case you want to revert changes.'});
 
 		new Setting(containerEl)

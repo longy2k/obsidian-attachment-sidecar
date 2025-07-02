@@ -1,9 +1,9 @@
 {
-	"id": "asset-markdown-generator",
-	"name": "Asset Markdown Generator (NEW)",
+	"id": "attachment-sidecar",
+	"name": "Attachment Sidecar",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Generates markdown files for assets.",
+	"description": "Add markdown sidecar to binary files (e.g. pdf, jpeg, canvas, bases)",
 	"author": "Obsidian",
 	"authorUrl": "https://obsidian.md",
 	"fundingUrl": "https://obsidian.md/pricing",

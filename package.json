@@ -1,7 +1,7 @@
 {
-	"name": "asset-markdown-generator",
+	"name": "attachment-sidecar",
 	"version": "1.0.0",
-	"description": "Generates markdown files for assets.",
+	"description": "Add markdown sidecar to binary files (e.g. pdf, jpeg, canvas, bases)",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
