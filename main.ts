@@ -1,12 +1,10 @@
 import { App, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
 
 interface SideCarSettings {
-	template: string;
 	hideSidecarFiles: boolean;
 }
 
 const DEFAULT_SETTINGS: SideCarSettings = {
-	template: `---\nfile: "[[{{filename}}]]"\n---\n![[{{filename}}]]`,
 	hideSidecarFiles: false,
 }
 
@@ -15,6 +13,9 @@ export default class SideCarPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
+
+		// Register a CSS class to hide sidecar files in the file explorer
+		document.body.toggleClass('hide-sidecar-files', this.settings.hideSidecarFiles);
 
 		this.registerEvent(
 			this.app.vault.on('create', async (file) => {
@@ -159,7 +160,7 @@ export default class SideCarPlugin extends Plugin {
 	}
 
 	onunload() {
-
+		document.body.removeClass('hide-sidecar-files');
 	}
 
 	async loadSettings() {
