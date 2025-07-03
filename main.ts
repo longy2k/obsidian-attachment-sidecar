@@ -1,11 +1,13 @@
 import { App, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
 
 interface SideCarSettings {
-	toggleSideCarFiles: boolean;
+	template: string;
+	hideSidecarFiles: boolean;
 }
 
 const DEFAULT_SETTINGS: SideCarSettings = {
-	toggleSideCarFiles: false,
+	template: `---\nfile: "[[{{filename}}]]"\n---\n![[{{filename}}]]`,
+	hideSidecarFiles: false,
 }
 
 export default class SideCarPlugin extends Plugin {
@@ -182,25 +184,39 @@ class SideCarSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h3', {text: 'Attachment Sidecar Settings'});
+		containerEl.createEl('h1', {text: 'Attachment Sidecar Settings'});
 
-		containerEl.createEl('p', {text: 'Backup your vault before activating just in case you want to revert changes.'});
+		containerEl.createEl('p', {text: ''}).innerHTML = '<strong>Recommended:</strong> Backup your vault before running this plugin.';
 
 		new Setting(containerEl)
-		.setName('Generate Sidecar Files')
-		.setDesc('Create sidecar markdown files for all binary attachments in vault.')
+		.setName('Load Sidecar Files')
+		.setDesc('This will create sidecar markdown files for all binary files (e.g. base, canvas, jpeg, mp4, pdf) in your current vault.')
 		.addButton(button => button
-			.setButtonText('Generate Sidecar Files')
+			.setButtonText('Run')
 			.setCta() // This makes it a Call-to-Action styled button
 			.onClick(async () => {
 			await this.createSideCarFiles();
 			}));
-		}
+
+		new Setting(containerEl)
+			.setName('Hide Sidecar Files')
+			.setDesc('Hide sidecar markdown files from the file explorer.')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.hideSidecarFiles)
+				.onChange(async (value) => {
+					this.plugin.settings.hideSidecarFiles = value;
+					await this.plugin.saveSettings();
+					
+					// Toggle CSS class on body to control the CSS rule
+					document.body.toggleClass('hide-sidecar-files', value);
+				}));
+
+		
+	}
 
 	// Updated createSideCarFiles method for creating sidecar markdown files
 	async createSideCarFiles() {
 		console.log('Vault Folder selected');
-		new Notice('Creating sidecar files for attachments in vault folder...');
 		
 		try {
 			// Get all files in the vault

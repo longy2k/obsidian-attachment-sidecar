@@ -6,3 +6,8 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+
+/* Hide sidecar files in file explorer when toggle is enabled */
+body.hide-sidecar-files .nav-file-title[data-path$=".md.md"] {
+	display: none;
+}
