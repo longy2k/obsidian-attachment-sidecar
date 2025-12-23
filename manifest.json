@@ -3,9 +3,9 @@
 	"name": "Attachment Sidecar",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Add markdown sidecar to binary files (e.g. pdf, jpeg, canvas, bases)",
+	"description": "Add metadata to binary files (e.g. base, canvas, jpeg, mp4, pdf) by creating sidecar markdown files.",
 	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"authorUrl": "https://longy2k.com",
+	"fundingUrl": "https://ko-fi.com/longy2k",
 	"isDesktopOnly": false
 }

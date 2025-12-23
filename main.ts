@@ -190,7 +190,7 @@ class SideCarSettingTab extends PluginSettingTab {
 		containerEl.createEl('p', {text: ''}).innerHTML = '<strong>Recommended:</strong> Backup your vault before running this plugin.';
 
 		new Setting(containerEl)
-		.setName('Load Sidecar Files')
+		.setName('Create Sidecar Files')
 		.setDesc('This will create sidecar markdown files for all binary files (e.g. base, canvas, jpeg, mp4, pdf) in your current vault.')
 		.addButton(button => button
 			.setButtonText('Run')
