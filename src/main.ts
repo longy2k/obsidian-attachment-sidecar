@@ -6,7 +6,7 @@ interface SideCarSettings {
 }
 
 const DEFAULT_SETTINGS: SideCarSettings = {
-	hideSidecarFiles: false,
+	hideSidecarFiles: true,
 }
 
 export default class SideCarPlugin extends Plugin {
@@ -102,11 +102,8 @@ export default class SideCarPlugin extends Plugin {
 			if (file.path.endsWith('.md.md')) {
 				newMainFilePath = file.path.slice(0, -6); // Remove '.md.md' extension
 			}
-			
-			const mainFile = this.app.vault.getAbstractFileByPath(oldMainFilePath);
 
-			console.log(`Renaming sidecar file: ${oldPath} -> ${file.path}`);
-			console.log(`${mainFile}`);
+			const mainFile = this.app.vault.getAbstractFileByPath(oldMainFilePath);
 			
 			if (mainFile instanceof TFile && mainFile.extension !== 'md') {
 				try {

@@ -1,5 +1,5 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import { createSideCarFiles } from './utils/sidecarUtils';
+import { createSideCarFiles, getBinaryFiles, getSidecarFiles } from './utils/sidecarUtils';
 import SideCarPlugin from './main';
 
 export class SideCarSettingTab extends PluginSettingTab {
@@ -19,14 +19,21 @@ export class SideCarSettingTab extends PluginSettingTab {
 
 		containerEl.createEl('p', {text: ''}).innerHTML = '<strong>Recommended:</strong> Backup your vault before running this plugin.';
 
+        // Count files
+		const allFiles = this.app.vault.getFiles();
+		const binaryFiles = getBinaryFiles(allFiles);
+        const sidecarFiles = getSidecarFiles(allFiles);
+
 		new Setting(containerEl)
 		.setName('Create Sidecar Files')
-		.setDesc('This will create sidecar markdown files for all binary files (e.g. base, canvas, jpeg, mp4, pdf) that does not exist in your current vault.')
+		.setDesc(`This will create sidecar markdown files for all binary files (e.g. base, canvas, jpeg, mp4, pdf) that does not exist in your vault. 
+            You currently have ${binaryFiles.length} binary files and ${sidecarFiles.length} sidecar markdown files in your vault.`)
 		.addButton(button => button
 			.setButtonText('Run')
 			.setCta() 
 			.onClick(async () => {
             await createSideCarFiles(this.plugin);
+            this.display();
 			}));
 
 		new Setting(containerEl)

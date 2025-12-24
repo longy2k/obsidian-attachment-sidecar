@@ -1,18 +1,11 @@
 import { Notice, TFile } from "obsidian";
 import SideCarPlugin from "src/main";
 
-// Updated createSideCarFiles method for creating sidecar markdown files
 export async function createSideCarFiles(plugin: SideCarPlugin) {
     try {
         // Get all files in the vault
         const allFiles = plugin.app.vault.getFiles();
-        
-        // Filter to get only binary/non-markdown files
-        const binaryFiles = allFiles.filter((file: TFile) => {
-            return file.extension !== 'md' && !file.path.endsWith('.md') && !file.path.endsWith('.md.md');
-        });
-        
-        console.log(`Found ${binaryFiles.length} binary files`);
+        const binaryFiles = getBinaryFiles(allFiles);
         
         let createdCount = 0;
         let skippedCount = 0;
@@ -26,7 +19,7 @@ export async function createSideCarFiles(plugin: SideCarPlugin) {
             
             if (existingSidecar) {
                 // Skip if sidecar already exists
-                console.log(`Skipping ${binaryFile.path} - sidecar already exists`);
+                // console.log(`Skipping ${binaryFile.path} - sidecar already exists`);
                 skippedCount++;
                 continue;
             }
@@ -37,7 +30,7 @@ export async function createSideCarFiles(plugin: SideCarPlugin) {
             try {
                 // Create the sidecar markdown file
                 await plugin.app.vault.create(sidecarPath, sidecarContent);
-                console.log(`Created sidecar for: ${binaryFile.path}`);
+                // console.log(`Created sidecar for: ${binaryFile.path}`);
                 createdCount++;
             } catch (error) {
                 console.error(`Failed to create sidecar for ${binaryFile.path}:`, error);
@@ -51,6 +44,18 @@ export async function createSideCarFiles(plugin: SideCarPlugin) {
         console.error('Error in createSideCarFiles:', error);
         new Notice('Error creating sidecar files. Check console for details.');
     }
+}
+
+export function getBinaryFiles(files: TFile[]): TFile[] {
+    return files.filter((file: TFile) => {
+        return file.extension !== 'md' && !file.path.endsWith('.md') && !file.path.endsWith('.md.md');
+    });
+}
+
+export function getSidecarFiles(files: TFile[]): TFile[] {
+    return files.filter((file: TFile) => {
+        return file.path.endsWith('.md.md');
+    });
 }
 
 // Helper method to generate basic sidecar content
