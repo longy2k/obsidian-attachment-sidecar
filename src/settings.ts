@@ -17,7 +17,9 @@ export class SideCarSettingTab extends PluginSettingTab {
 
 		containerEl.createEl('h1', {text: 'Attachment Sidecar Settings'});
 
-		containerEl.createEl('p', {text: ''}).innerHTML = '<strong>Recommended:</strong> Backup your vault before running this plugin.';
+		const p = containerEl.createEl('p');
+		p.createEl('strong', { text: 'Recommended:' });
+		p.appendText(' Backup your vault before running this plugin.');
 
         // Count files
 		const allFiles = this.app.vault.getFiles();
