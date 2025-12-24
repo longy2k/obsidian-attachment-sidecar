@@ -1,4 +1,5 @@
-import { App, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
+import { Plugin, TFile } from 'obsidian';
+import { SideCarSettingTab } from './settings';
 
 interface SideCarSettings {
 	hideSidecarFiles: boolean;
@@ -169,110 +170,5 @@ export default class SideCarPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
-	}
-}
-
-class SideCarSettingTab extends PluginSettingTab {
-	plugin: SideCarPlugin;
-
-	constructor(app: App, plugin: SideCarPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	display(): void {
-		const {containerEl} = this;
-
-		containerEl.empty();
-
-		containerEl.createEl('h1', {text: 'Attachment Sidecar Settings'});
-
-		containerEl.createEl('p', {text: ''}).innerHTML = '<strong>Recommended:</strong> Backup your vault before running this plugin.';
-
-		new Setting(containerEl)
-		.setName('Create Sidecar Files')
-		.setDesc('This will create sidecar markdown files for all binary files (e.g. base, canvas, jpeg, mp4, pdf) in your current vault.')
-		.addButton(button => button
-			.setButtonText('Run')
-			.setCta() // This makes it a Call-to-Action styled button
-			.onClick(async () => {
-			await this.createSideCarFiles();
-			}));
-
-		new Setting(containerEl)
-			.setName('Hide Sidecar Files')
-			.setDesc('Hide sidecar markdown files from the file explorer.')
-			.addToggle(toggle => toggle
-				.setValue(this.plugin.settings.hideSidecarFiles)
-				.onChange(async (value) => {
-					this.plugin.settings.hideSidecarFiles = value;
-					await this.plugin.saveSettings();
-					
-					// Toggle CSS class on body to control the CSS rule
-					document.body.toggleClass('hide-sidecar-files', value);
-				}));
-
-		
-	}
-
-	// Updated createSideCarFiles method for creating sidecar markdown files
-	async createSideCarFiles() {
-		console.log('Vault Folder selected');
-		
-		try {
-			// Get all files in the vault
-			const allFiles = this.plugin.app.vault.getFiles();
-			
-			// Filter to get only binary/non-markdown files
-			const binaryFiles = allFiles.filter(file => {
-				return file.extension !== 'md' && !file.path.endsWith('.md') && !file.path.endsWith('.md.md');
-			});
-			
-			console.log(`Found ${binaryFiles.length} binary files`);
-			
-			let createdCount = 0;
-			let skippedCount = 0;
-			
-			for (const binaryFile of binaryFiles) {
-				// Create the sidecar file path by adding .md extension
-				const sidecarPath = `${binaryFile.path}.md.md`;
-				
-				// Check if sidecar file already exists
-				const existingSidecar = this.plugin.app.vault.getAbstractFileByPath(sidecarPath);
-				
-				if (existingSidecar) {
-					// Skip if sidecar already exists
-					console.log(`Skipping ${binaryFile.path} - sidecar already exists`);
-					skippedCount++;
-					continue;
-				}
-				
-				// Create basic sidecar content
-				const sidecarContent = this.generateSidecarContent(binaryFile);
-				
-				try {
-					// Create the sidecar markdown file
-					await this.plugin.app.vault.create(sidecarPath, sidecarContent);
-					console.log(`Created sidecar for: ${binaryFile.path}`);
-					createdCount++;
-				} catch (error) {
-					console.error(`Failed to create sidecar for ${binaryFile.path}:`, error);
-				}
-			}
-			
-			// Show summary notice
-			new Notice(`Sidecar creation complete: ${createdCount} created, ${skippedCount} skipped`);
-			
-		} catch (error) {
-			console.error('Error in createSideCarFiles:', error);
-			new Notice('Error creating sidecar files. Check console for details.');
-		}
-	}
-
-	// Helper method to generate basic sidecar content
-	private generateSidecarContent(binaryFile: TFile): string {
-		const filename = binaryFile.name;
-		
-		return `---\nfile: "[[${filename}]]"\n---\n![[${filename}]]`;
 	}
 }
