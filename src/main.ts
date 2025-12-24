@@ -44,6 +44,7 @@ export default class SideCarPlugin extends Plugin {
 			})
 		);
 
+		// Handle renaming of files to keep sidecars in sync
 		this.registerEvent(
 		this.app.vault.on('rename', async (file, oldPath) => {
 			// Case 1: Handle non-markdown files being renamed
@@ -82,7 +83,6 @@ export default class SideCarPlugin extends Plugin {
 					await this.app.vault.modify(renamedSidecarFile, updatedContent);
 				}
 				} catch (error) {
-				// Silently handle file system errors - they're usually harmless race conditions
 				console.log(`Sidecar rename skipped for ${oldPath}: ${error.message}`);
 				}
 			}
@@ -91,9 +91,22 @@ export default class SideCarPlugin extends Plugin {
 			// Case 2: Handle markdown sidecar files being renamed
 			else if (file instanceof TFile && file.extension === 'md' && oldPath.endsWith('.md.md')) {
 			// Check if this is a sidecar file by seeing if there's a corresponding main file
-			const oldMainFilePath = oldPath.slice(0, -6); // Remove '.md' extension
-			const newMainFilePath = file.path.slice(0, -6); // Remove '.md' extension
+			let oldMainFilePath = oldPath;
+			let newMainFilePath = file.path;
+
+			// Only slice if the specific sidecar extension is found
+			if (oldPath.endsWith('.md.md')) {
+				oldMainFilePath = oldPath.slice(0, -6); // Remove '.md.md' extension
+			}
+
+			if (file.path.endsWith('.md.md')) {
+				newMainFilePath = file.path.slice(0, -6); // Remove '.md.md' extension
+			}
+			
 			const mainFile = this.app.vault.getAbstractFileByPath(oldMainFilePath);
+
+			console.log(`Renaming sidecar file: ${oldPath} -> ${file.path}`);
+			console.log(`${mainFile}`);
 			
 			if (mainFile instanceof TFile && mainFile.extension !== 'md') {
 				try {
@@ -123,7 +136,6 @@ export default class SideCarPlugin extends Plugin {
 				await this.app.vault.modify(file, updatedContent);
 				
 				} catch (error) {
-				// Silently handle file system errors - they're usually harmless race conditions
 				console.log(`Main file rename skipped for ${oldPath}: ${error.message}`);
 				}
 			}

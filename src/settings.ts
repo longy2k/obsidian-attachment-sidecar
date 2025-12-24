@@ -21,7 +21,7 @@ export class SideCarSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 		.setName('Create Sidecar Files')
-		.setDesc('This will create sidecar markdown files for all binary files (e.g. base, canvas, jpeg, mp4, pdf) in your current vault.')
+		.setDesc('This will create sidecar markdown files for all binary files (e.g. base, canvas, jpeg, mp4, pdf) that does not exist in your current vault.')
 		.addButton(button => button
 			.setButtonText('Run')
 			.setCta() 

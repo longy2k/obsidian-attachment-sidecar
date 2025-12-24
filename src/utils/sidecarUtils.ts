@@ -3,8 +3,6 @@ import SideCarPlugin from "src/main";
 
 // Updated createSideCarFiles method for creating sidecar markdown files
 export async function createSideCarFiles(plugin: SideCarPlugin) {
-    console.log('Vault Folder selected');
-    
     try {
         // Get all files in the vault
         const allFiles = plugin.app.vault.getFiles();
