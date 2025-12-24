@@ -1,7 +1,7 @@
 {
 	"name": "attachment-sidecar",
 	"version": "1.0.0",
-	"description": "Add metadata to binary files (e.g. base, canvas, jpeg, mp4, pdf) by creating sidecar markdown files.",
+	"description": "Add metadata to binary files (e.g. base, canvas, jpg, mp4, pdf) by creating sidecar markdown files.",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
