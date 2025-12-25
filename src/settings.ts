@@ -15,8 +15,6 @@ export class SideCarSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h1', {text: 'Attachment Sidecar Settings'});
-
 		const p = containerEl.createEl('p');
 		p.createEl('strong', { text: 'Recommended:' });
 		p.appendText(' Backup your vault before running this plugin.');
@@ -27,7 +25,7 @@ export class SideCarSettingTab extends PluginSettingTab {
         const sidecarFiles = getSidecarFiles(allFiles);
 
 		new Setting(containerEl)
-		.setName('Create Sidecar Files')
+		.setName('Create sidecar files')
 		.setDesc(`This will create sidecar markdown files for all binary files (e.g. base, canvas, jpg, mp4, pdf) that does not exist in your vault. 
             You currently have ${binaryFiles.length} binary files and ${sidecarFiles.length} sidecar markdown files in your vault.`)
 		.addButton(button => button
@@ -39,7 +37,7 @@ export class SideCarSettingTab extends PluginSettingTab {
 			}));
 
 		new Setting(containerEl)
-			.setName('Hide Sidecar Files')
+			.setName('Hide sidecar files')
 			.setDesc('Hide sidecar markdown files from the file explorer.')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.hideSidecarFiles)

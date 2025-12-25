@@ -36,9 +36,9 @@ export default class SideCarPlugin extends Plugin {
 						
 						// Create the sidecar file
 						await this.app.vault.create(sidecarPath, sidecarContent);
-						console.log(`Created sidecar for: ${file.path}`);
+						// console.debug(`Created sidecar for: ${file.path}`);
 					} catch (error) {
-						console.log(`Failed to create sidecar for ${file.path}: ${error.message}`);
+						console.error(`Failed to create sidecar for ${file.path}: ${error.message}`);
 					}
 				}
 			})
@@ -58,7 +58,7 @@ export default class SideCarPlugin extends Plugin {
 				// Check if the sidecar file actually exists and is readable
 				const fileExists = await this.app.vault.adapter.exists(oldSidecarPath);
 				if (!fileExists) {
-					console.log(`Sidecar file ${oldSidecarPath} doesn't exist, skipping rename`);
+					console.error(`Sidecar file ${oldSidecarPath} doesn't exist, skipping rename`);
 					return;
 				}
 				
@@ -83,7 +83,7 @@ export default class SideCarPlugin extends Plugin {
 					await this.app.vault.modify(renamedSidecarFile, updatedContent);
 				}
 				} catch (error) {
-				console.log(`Sidecar rename skipped for ${oldPath}: ${error.message}`);
+				console.error(`Sidecar rename skipped for ${oldPath}: ${error.message}`);
 				}
 			}
 			}
@@ -110,7 +110,7 @@ export default class SideCarPlugin extends Plugin {
 				// Check if the main file actually exists
 				const fileExists = await this.app.vault.adapter.exists(oldMainFilePath);
 				if (!fileExists) {
-					console.log(`Main file ${oldMainFilePath} doesn't exist, skipping rename`);
+					console.warn(`Main file ${oldMainFilePath} doesn't exist, skipping rename`);
 					return;
 				}
 				
@@ -133,7 +133,7 @@ export default class SideCarPlugin extends Plugin {
 				await this.app.vault.modify(file, updatedContent);
 				
 				} catch (error) {
-				console.log(`Main file rename skipped for ${oldPath}: ${error.message}`);
+				console.error(`Main file rename skipped for ${oldPath}: ${error.message}`);
 				}
 			}
 			}
@@ -154,10 +154,10 @@ export default class SideCarPlugin extends Plugin {
 				// Check if file still exists before attempting to delete
 				const exists = await this.app.vault.adapter.exists(sidecarPath);
 				if (exists) {
-					await this.app.vault.trash(sidecarFile, false);
+					await this.app.fileManager.trashFile(sidecarFile);
 				}
 				} catch (error) {
-				console.log(`Could not delete sidecar: ${error.message}`);
+				console.error(`Could not delete sidecar: ${error.message}`);
 				}
 			}
 			}
